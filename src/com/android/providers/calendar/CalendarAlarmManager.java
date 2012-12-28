@@ -137,7 +137,13 @@ public class CalendarAlarmManager {
     }
 
     void scheduleNextAlarm(boolean removeAlarms) {
-        if (!mNextAlarmCheckScheduled.getAndSet(true)) {
+        // We must always run the following when 'removeAlarms' is true.  Previously it
+        // was possible to have a race condition on startup between TIME_CHANGED and
+        // BOOT_COMPLETED broadcast actions.  This resulted in alarms being
+        // missed (Bug 7221716) when the TIME_CHANGED broadcast ('removeAlarms' = false)
+        // happened right before the BOOT_COMPLETED ('removeAlarms' = true), and the
+        // BOOT_COMPLETED action was skipped since there was concurrent scheduling in progress.
+        if (!mNextAlarmCheckScheduled.getAndSet(true) || removeAlarms) {
             if (Log.isLoggable(CalendarProvider2.TAG, Log.DEBUG)) {
                 Log.d(CalendarProvider2.TAG, "Scheduling check of next Alarm");
             }
@@ -193,9 +199,13 @@ public class CalendarAlarmManager {
      * @param db TODO
      */
     void runScheduleNextAlarm(boolean removeAlarms, CalendarProvider2 cp2) {
+        SQLiteDatabase db = cp2.mDb;
+        if (db == null) {
+            return;
+        }
+
         // Reset so that we can accept other schedules of next alarm
         mNextAlarmCheckScheduled.set(false);
-        SQLiteDatabase db = cp2.mDb;
         db.beginTransaction();
         try {
             if (removeAlarms) {
