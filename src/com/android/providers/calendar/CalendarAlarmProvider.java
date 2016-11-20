@@ -97,17 +97,10 @@ public class CalendarAlarmProvider extends ContentProvider {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
         // Generate the body of the query.
-        int match = sURIMatcher.match(uri);
-        switch (match) {
-            case CA_HOLIDAY:
-                qb.setTables(HOLIDAY_TABLE);
-                break;
-            case CA_WORKDAY:
-                qb.setTables(WORKDAY_TABLE);
-                break;
-            default:
-                Log.e(TAG, "query: invalid request: " + uri);
-                return null;
+        if (uri.equals(Alarm.CONTENT_FILTER_HOLIDAY_URI)) {
+            qb.setTables(HOLIDAY_TABLE);
+        } else {
+            qb.setTables(WORKDAY_TABLE);
         }
 
         SQLiteDatabase db = mOpenHelper.getReadableDatabase();
