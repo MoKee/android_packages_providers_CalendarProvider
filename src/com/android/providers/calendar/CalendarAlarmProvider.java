@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The MoKee Open Source Project
+ * Copyright (C) 2016-2018 The MoKee Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.provider.CalendarContract;
 import android.provider.CalendarContract.Alarm;
 import android.util.Log;
 import android.net.Uri;
@@ -95,14 +94,18 @@ public class CalendarAlarmProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-
         // Generate the body of the query.
-        if (uri.equals(Alarm.CONTENT_FILTER_HOLIDAY_URI)) {
-            qb.setTables(HOLIDAY_TABLE);
-        } else {
-            qb.setTables(WORKDAY_TABLE);
+        int match = sURIMatcher.match(uri);
+        switch (match) {
+            case CA_HOLIDAY:
+                qb.setTables(HOLIDAY_TABLE);
+                break;
+            case CA_WORKDAY:
+                qb.setTables(WORKDAY_TABLE);
+                break;
+            default:
+                return null;
         }
-
         SQLiteDatabase db = mOpenHelper.getReadableDatabase();
         Cursor ret = null;
         try {
@@ -110,7 +113,6 @@ public class CalendarAlarmProvider extends ContentProvider {
         } catch (SQLiteException e) {
             Log.e(TAG, "returning NULL cursor, query: " + uri, e);
         }
-
         // TODO: Does this need to be a URI for this provider.
         if (ret != null)
             ret.setNotificationUri(getContext().getContentResolver(), uri);
@@ -119,26 +121,51 @@ public class CalendarAlarmProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-
-        long rowID = 0;
-        if (uri.equals(Alarm.CONTENT_FILTER_HOLIDAY_URI)) {
-            rowID = db.insertWithOnConflict(HOLIDAY_TABLE, null ,values, SQLiteDatabase.CONFLICT_IGNORE);
+        long rowID;
+        int match = sURIMatcher.match(uri);
+        switch (match) {
+            case CA_HOLIDAY:
+                rowID = db.insertWithOnConflict(HOLIDAY_TABLE, null ,values, SQLiteDatabase.CONFLICT_IGNORE);
+                break;
+            case CA_WORKDAY:
+                rowID = db.insertWithOnConflict(WORKDAY_TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                break;
+            default:
+                return null;
         }
-        else {
-            rowID = db.insertWithOnConflict(WORKDAY_TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-        }
-
         if (rowID <= 0) {
             return null;
         }
-
-        if (DEBUG) Log.d(TAG, "inserted " + values + "rowID = " + rowID);
+        if (DEBUG) Log.d(TAG, "Inserted " + values + "rowID = " + rowID);
         notifyChange(uri);
-
         return ContentUris.withAppendedId(uri.equals(Alarm.CONTENT_FILTER_HOLIDAY_URI) ?
                 Alarm.CONTENT_FILTER_HOLIDAY_URI : Alarm.CONTENT_FILTER_WORKDAY_URI, rowID);
+    }
+
+    @Override
+    public int update(Uri uri, ContentValues values, String where, String[] whereArgs) {
+        return 0;
+    }
+
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int count;
+        int match = sURIMatcher.match(uri);
+        switch(match) {
+            case CA_HOLIDAY:
+                count = db.delete(HOLIDAY_TABLE, selection, selectionArgs);
+                break;
+            case CA_WORKDAY:
+                count = db.delete(WORKDAY_TABLE, selection, selectionArgs);
+                break;
+            default:
+                return 0;
+        }
+        if (DEBUG) Log.d(TAG, "Deleted " + count + "rows");
+        notifyChange(uri);
+        return count;
     }
 
     @Override
@@ -152,16 +179,6 @@ public class CalendarAlarmProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unknown URL " + uri);
         }
-    }
-
-    @Override
-    public int update(Uri uri, ContentValues values, String where, String[] whereArgs) {
-        return 0;
-    }
-
-    @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
     }
 
     private void notifyChange(Uri changeUri) {
