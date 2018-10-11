@@ -43,22 +43,23 @@ public class CalendarAlarmProvider extends ContentProvider {
     private static final String WORKDAY_TABLE = "workday";
 
     private static final int CA_HOLIDAY = 0;
-    private static final int CA_WORKDAY = 1;
+    private static final int CA_HOLIDAY_ID = 1;
+    private static final int CA_WORKDAY = 2;
+    private static final int CA_WORKDAY_ID = 3;
 
     private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        sURIMatcher.addURI(Alarm.AUTHORITY, "holiday/*", CA_HOLIDAY);
-        sURIMatcher.addURI(Alarm.AUTHORITY, "workday/*", CA_WORKDAY);
+        sURIMatcher.addURI(Alarm.AUTHORITY, "holiday", CA_HOLIDAY);
+        sURIMatcher.addURI(Alarm.AUTHORITY, "holiday/*", CA_HOLIDAY_ID);
+        sURIMatcher.addURI(Alarm.AUTHORITY, "workday", CA_WORKDAY);
+        sURIMatcher.addURI(Alarm.AUTHORITY, "workday/*", CA_WORKDAY_ID);
     }
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
 
-        private Context mContext;
-
         public DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
-            mContext = context;
         }
 
         @Override
@@ -98,9 +99,11 @@ public class CalendarAlarmProvider extends ContentProvider {
         int match = sURIMatcher.match(uri);
         switch (match) {
             case CA_HOLIDAY:
+            case CA_HOLIDAY_ID:
                 qb.setTables(HOLIDAY_TABLE);
                 break;
             case CA_WORKDAY:
+            case CA_WORKDAY_ID:
                 qb.setTables(WORKDAY_TABLE);
                 break;
             default:
