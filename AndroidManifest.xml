@@ -53,6 +53,13 @@
                 android:readPermission="android.permission.READ_CALENDAR"
                 android:writePermission="android.permission.WRITE_CALENDAR" />
 
+        <provider android:name="CalendarAlarmProvider" android:authorities="com.android.calendar.alarm"
+            android:label="@string/provider_label"
+            android:multiprocess="false"
+            android:exported="true"
+            android:readPermission="android.permission.READ_CALENDAR"
+            android:writePermission="android.permission.WRITE_CALENDAR" />
+
         <receiver android:name="CalendarReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
