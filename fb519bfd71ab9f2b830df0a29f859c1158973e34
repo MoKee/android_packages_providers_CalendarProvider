@@ -1,0 +1,4 @@
+{
+  "pushCert": "certificate version 0.1\npusher 2ECD2531 1611409866 +0800\npushee ssh://mokeedev.review:29418/MoKee/android_packages_providers_CalendarProvider\nnonce 1611409866-270114F63C5073EAE5BAB6E3E802B1EE6089BD47\n\n0000000000000000000000000000000000000000 d9a6bdd24e9e3f795220d9e04fd185def72e7ef1 refs/for/mkr-mr1%topic\u003d11-bringup\n-----BEGIN PGP SIGNATURE-----\n\niQEzBAABCgAdFiEE/Y8fKHw84zhHjhP78iL05i7NJTEFAmAMKcoACgkQ8iL05i7N\nJTGwswf+Mg945mK/MAwMtEu4xU7/B8/KwOhQUf5OOpROp/eiajn+xhLM8Ac8k9Hj\n1zdELmClTZJS+uk+68y31XFLWUlvpr/bALoVrleprdG8TCUSLNTc5XkNwUEzsJ1D\nhl7w0VQMEPa8kFAzmkdSOf7l3RWBgp2IXXo2IlG6Jv7rZH0kWVIyPysc29WhDk+I\n4Q+em3idG/+7uM8mHeoy1lJsMkj2aodhaGuUYAU38B0LGRP2aTPTJwuIGl1FzTt0\nSLm/Sagm8YU49Wy5fZJNcITCjYfx7wZ6em3vyHhco9/mRo89nc89rDsPTD84H8F1\n1kWUFLCQefgDaynbMwoyLzosk/4eTg\u003d\u003d\n\u003dwI9X\n-----END PGP SIGNATURE-----\n",
+  "comments": []
+}
